@@ -23,25 +23,45 @@ app.get("/api/config", (req, res) => {
   res.json({ rawgApiKey: process.env.RAWG_API_KEY });
 });
 
-// Conecta ao banco de dados MySQL
-const db = mysql.createConnection({
-  host: process.env.MYSQLHOST || "SEU_HOST_MYSQL",
-  user: process.env.MYSQLUSER || "SEU_USUARIO_MYSQL",
-  password: process.env.MYSQLPASSWORD || "SUA_SENHA_MYSQL",
-  database: process.env.MYSQLDATABASE || "SEU_NOME_DO_BANCO",
-  port: Number(process.env.MYSQLPORT) || 3306
-});
+// ============================================================
+// CONEXÃO AO BANCO DE DADOS (APENAS SE CONFIGURADO NO .ENV)
+// ============================================================
+const DB_ENABLED = !!process.env.MYSQLHOST;
+let db = null;
 
-db.connect((err) => {
-  if (err) {
-    console.error("Erro ao conectar ao banco:", err.message);
-  } else {
-    console.log(`Conectado ao MySQL em: ${db.config.host}`);
+if (DB_ENABLED) {
+  try {
+    const mysql = require("mysql2");
+    db = mysql.createConnection({
+      host: process.env.MYSQLHOST,
+      user: process.env.MYSQLUSER,
+      password: process.env.MYSQLPASSWORD,
+      database: process.env.MYSQLDATABASE,
+      port: Number(process.env.MYSQLPORT) || 3306
+    });
+
+    db.connect((err) => {
+      if (err) {
+        console.error("Erro ao conectar ao banco:", err.message);
+        db = null; // Desativa recursos de banco se falhar
+      } else {
+        console.log(`Conectado ao MySQL em: ${db.config.host}`);
+        prepararBanco();
+      }
+    });
+  } catch (e) {
+    console.warn("[AVISO] Erro ao carregar o driver do MySQL. Recursos de banco desabilitados.");
+    db = null;
   }
-});
+} else {
+  console.log("[INFO] Rodando em modo RAWG-only (Sem Banco de Dados).");
+}
 
-// Prepara o banco: cria a tabela de contas e os jogos favoritados
-db.query(`
+function prepararBanco() {
+  if (!db) return;
+
+  // Prepara o banco: cria a tabela de contas e os jogos favoritados
+  db.query(`
     CREATE TABLE IF NOT EXISTS usuarios (
       id       INT AUTO_INCREMENT PRIMARY KEY,
       usuario  VARCHAR(255) UNIQUE NOT NULL,
@@ -50,12 +70,12 @@ db.query(`
       favoritos JSON
     )
   `, (err) => {
-  if (err) console.error("Erro ao criar tabela 'usuarios':", err.message);
-  else console.log("Tabela 'usuarios' pronta.");
-});
+    if (err) console.error("Erro ao criar tabela 'usuarios':", err.message);
+    else console.log("Tabela 'usuarios' pronta.");
+  });
 
-// Tabela de avaliações: guarda os comentários e notas que os usuários publicam
-db.query(`
+  // Tabela de avaliações: guarda os comentários e notas que os usuários publicam
+  db.query(`
     CREATE TABLE IF NOT EXISTS avaliacoes (
       id         INT AUTO_INCREMENT PRIMARY KEY,
       usuario    VARCHAR(255)   NOT NULL,
@@ -66,40 +86,47 @@ db.query(`
       criado_em  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `, (err) => {
-  if (err) console.error("Erro ao criar tabela 'avaliacoes':", err.message);
-  else console.log("Tabela 'avaliacoes' pronta.");
-});
+    if (err) console.error("Erro ao criar tabela 'avaliacoes':", err.message);
+    else console.log("Tabela 'avaliacoes' pronta.");
+  });
 
-// Atualização do banco: Garante que a coluna 'editado_em' exista para marcar comentários editados
-db.query(
-  `SELECT COUNT(*) AS cnt
+  // Atualização do banco: Garante que a coluna 'editado_em' exista para marcar comentários editados
+  db.query(
+    `SELECT COUNT(*) AS cnt
      FROM information_schema.COLUMNS
      WHERE TABLE_SCHEMA = DATABASE()
        AND TABLE_NAME   = 'avaliacoes'
        AND COLUMN_NAME  = 'editado_em'`,
-  (err, rows) => {
-    if (err) { console.error("Erro ao verificar coluna editado_em:", err.message); return; }
-    if (rows[0].cnt === 0) {
-      db.query(
-        `ALTER TABLE avaliacoes ADD COLUMN editado_em TIMESTAMP NULL DEFAULT NULL`,
-        (err) => {
-          if (err) console.error("Erro ao adicionar coluna editado_em:", err.message);
-          else console.log("Coluna 'editado_em' adicionada na tabela 'avaliacoes'.");
-        }
-      );
-    } else {
-      console.log("Coluna 'editado_em' já existe.");
+    (err, rows) => {
+      if (err) { console.error("Erro ao verificar coluna editado_em:", err.message); return; }
+      if (rows && rows[0] && rows[0].cnt === 0) {
+        db.query(
+          `ALTER TABLE avaliacoes ADD COLUMN editado_em TIMESTAMP NULL DEFAULT NULL`,
+          (err) => {
+            if (err) console.error("Erro ao adicionar coluna editado_em:", err.message);
+            else console.log("Coluna 'editado_em' adicionada na tabela 'avaliacoes'.");
+          }
+        );
+      } else {
+        console.log("Coluna 'editado_em' já existe.");
+      }
     }
+  );
+}
+
+// Middleware para impedir que rotas de banco quebrem se o banco não estiver configurado
+function requireDB(req, res, next) {
+  if (!db) {
+    return res.status(503).json({ erro: "Banco de dados não configurado neste ambiente." });
   }
-);
+  next();
+}
 
 // ============================================================
-//  AUTENTICAÇÃO
+//  AUTENTICAÇÃO (Opcional - Requer Banco)
 // ============================================================
 
-// Cria a conta do usuário. Verifica primeiro se aquele nome e e-mail já não estão em uso.
-// Também proíbe senhas com menos de 6 caracteres.
-app.post("/api/cadastrar", (req, res) => {
+app.post("/api/cadastrar", requireDB, (req, res) => {
   const usuario = String(req.body.usuario || "").trim();
   const email = String(req.body.email || "").trim().toLowerCase();
   const senha = String(req.body.senha || "").trim();
@@ -134,8 +161,7 @@ app.post("/api/cadastrar", (req, res) => {
   );
 });
 
-// Faz o login do usuário. Permite entrar usando o e-mail ou o nome de usuário.
-app.post("/api/login", (req, res) => {
+app.post("/api/login", requireDB, (req, res) => {
   const identity = String(req.body.identity || "").trim().toLowerCase();
   const senha = String(req.body.senha || "").trim();
 
@@ -164,11 +190,11 @@ app.post("/api/login", (req, res) => {
 });
 
 // ============================================================
-//  FAVORITOS
+//  FAVORITOS (Opcional - Requer Banco)
 // ============================================================
 
-// Helpers para evitar repetição nas rotas de favoritos
 function findUsuario(usuario, callback) {
+  if (!db) return callback(new Error("Sem banco"));
   db.query(
     "SELECT id, favoritos FROM usuarios WHERE email = ? OR usuario = ?",
     [usuario, usuario],
@@ -184,8 +210,7 @@ function parseFavoritos(row) {
   } catch (_) { return []; }
 }
 
-// Adiciona o jogo clicado à coleção pessoal de favoritos (ignora se já foi adicionado).
-app.post("/api/favoritos", (req, res) => {
+app.post("/api/favoritos", requireDB, (req, res) => {
   const { usuario, game_id, game_name } = req.body;
 
   findUsuario(usuario, (err, rows) => {
@@ -206,8 +231,7 @@ app.post("/api/favoritos", (req, res) => {
   });
 });
 
-// Remove aquele jogo específico da lista de favoritos do usuário.
-app.delete("/api/favoritos", (req, res) => {
+app.delete("/api/favoritos", requireDB, (req, res) => {
   const { usuario, game_id } = req.body;
 
   findUsuario(usuario, (err, rows) => {
@@ -230,15 +254,10 @@ app.delete("/api/favoritos", (req, res) => {
 });
 
 // ============================================================
-//  AVALIAÇÕES
-//
-//  Atenção: /medias DEVE vir antes de /:game_id, senão o Express
-//  captura "medias" como parâmetro dinâmico e a rota nunca é atingida.
+//  AVALIAÇÕES (Opcional - Requer Banco)
 // ============================================================
 
-// Pega as notas médias juntas com a quantidade de avaliações de vários jogos de uma vez.
-// É usado para carregar as estrelinhas na grade inicial de jogos.
-app.get("/api/avaliacoes/medias", (req, res) => {
+app.get("/api/avaliacoes/medias", requireDB, (req, res) => {
   const ids = (req.query.ids || "").split(",").map(Number).filter(Boolean);
 
   if (!ids.length) return res.json({ medias: {} });
@@ -265,8 +284,7 @@ app.get("/api/avaliacoes/medias", (req, res) => {
   );
 });
 
-// Retorna pro site todos os comentários, notas e informações de avaliações de um jogo específico.
-app.get("/api/avaliacoes/:game_id", (req, res) => {
+app.get("/api/avaliacoes/:game_id", requireDB, (req, res) => {
   const gameId = Number(req.params.game_id);
 
   if (!gameId) return res.status(400).json({ erro: "ID de jogo inválido." });
@@ -290,8 +308,6 @@ app.get("/api/avaliacoes/:game_id", (req, res) => {
   );
 });
 
-// Envia uma avaliação nova feita pelo usuário, ou edita ela.
-// Exige uma nota entre 0,5 a 5 estrelas e um texto de no mínimo 4 caracteres.
 app.post("/api/avaliacoes", requireDB, (req, res) => {
   const { usuario, game_id, game_name, nota, comentario } = req.body;
   const notaNum = Number(nota);
@@ -305,7 +321,6 @@ app.post("/api/avaliacoes", requireDB, (req, res) => {
     });
   }
 
-  // Checa se o usuário já fez review do jogo para atualizar ao invés de criar outra igual
   db.query(
     "SELECT id FROM avaliacoes WHERE usuario = ? AND game_id = ? LIMIT 1",
     [usuario, game_id],
@@ -335,7 +350,6 @@ app.post("/api/avaliacoes", requireDB, (req, res) => {
   );
 });
 
-// Deleta permanentemente a avaliação que o usuário tinha deixado para algum jogo.
 app.delete("/api/avaliacoes", requireDB, (req, res) => {
   const { usuario, game_id } = req.body;
 
@@ -356,7 +370,7 @@ app.delete("/api/avaliacoes", requireDB, (req, res) => {
 
 // Verificador de saúde do servidor: serve para checar facilmente se ele está online e funcionando.
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true, status: "online" });
+  res.json({ ok: true, status: "online", db: !!db });
 });
 
 const PORT = process.env.PORT || 3333;
