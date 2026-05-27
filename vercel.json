@@ -6,6 +6,10 @@
       "use": "@vercel/node"
     },
     {
+      "src": "favicon.svg",
+      "use": "@vercel/static"
+    },
+    {
       "src": "pages/*.html",
       "use": "@vercel/static"
     },
@@ -22,6 +26,10 @@
     {
       "src": "/api/(.*)",
       "dest": "/server.js"
+    },
+    {
+      "src": "/favicon.svg",
+      "dest": "/favicon.svg"
     },
     {
       "src": "/styles/(.*)",
