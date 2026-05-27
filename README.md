@@ -1,79 +1,81 @@
-# Lib for Gamers 🎮
+# Lib for Gamers
 
-Um catálogo web de jogos e plataforma de reviews construída para ajudar jogadores a pesquisarem sobre seus jogos favoritos e avaliá-los. Consome dados atualizados diretamente da [RAWG API](https://rawg.io/apidocs).
+Um catálogo web de jogos moderno, responsivo e de alta performance que consome dados em tempo real diretamente da [RAWG Video Games Database API](https://rawg.io/apidocs).
 
-O projeto é dividido em uma interface estática (HTML/CSS/JS) e um backend com API REST (Node.js + Express). O banco de dados MySQL é **opcional** — o catálogo e a busca funcionam sem ele, mas login, favoritos e avaliações dependem de um banco configurado.
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-- **Frontend:** HTML5, CSS3, JavaScript (Vanilla)
-- **Backend:** Node.js, Express.js, CORS
-- **Banco de Dados (opcional):** MySQL2 (Railway)
-- **API Externa:** RAWG Video Games Database API
+A aplicação conta com um design escuro premium (glassmorphism), animações suaves e um sistema de backend robusto projetado para se adaptar dinamicamente ao ambiente de hospedagem.
 
 ---
 
-## 🚀 Como Executar Localmente
+## Diferencial de Engenharia: Railway vs. Vercel
 
-### 1. Requisitos
-- Node.js instalado no seu computador.
-- Uma chave gratuita da API RAWG ([obtenha aqui](https://rawg.io/apidocs)).
-- *(Opcional)* Um servidor MySQL rodando localmente (ex: XAMPP, Laragon) ou na nuvem (Railway, PlanetScale, etc.) para usar login, favoritos e avaliações.
+### O Problema Original
+O projeto foi inicialmente projetado para rodar no **Railway** integrado a um banco de dados relacional **MySQL**. O backend conectava-se de forma obrigatória ao MySQL durante a inicialização usando as credenciais providas pelo Railway.
 
-### 2. Configurando as Variáveis de Ambiente
+Ao subir a aplicação no **Vercel** (um ambiente Serverless sem banco de dados integrado por padrão):
+1. O servidor tentava a conexão com o banco ausente, resultando em um erro fatal e **travando o backend**.
+2. Com o backend travado, a rota de segurança `/api/config` ficava inacessível.
+3. Consequentemente, a interface web não conseguia obter a chave secreta da API (`RAWG_API_KEY`), fazendo com que o catálogo ficasse **totalmente em branco** na tela do usuário.
 
-Crie um arquivo `.env` na raiz do projeto (ao lado do `server.js`). Somente a chave RAWG é obrigatória:
+### A Solução Implementada
+O código em `server.js` foi refatorado para funcionar em **modo híbrido inteligente**. O banco de dados MySQL agora é **100% opcional**:
+* **Modo Sem Banco (Padrão Vercel):** O servidor detecta a ausência de variáveis do MySQL, ignora a inicialização da conexão e ativa o **modo RAWG-only**. A busca, os filtros e a página de detalhes funcionam perfeitamente. Funcionalidades dependentes do banco (login e avaliações) são interceptadas e desabilitadas com respostas limpas de status `503 Service Unavailable`, garantindo que o app **nunca quebre**.
+* **Modo Com Banco (Habilitado local ou Railway):** Conecta automaticamente ao MySQL e habilita toda a persistência de contas de usuários, favoritos e sistema de comentários/avaliações.
+
+---
+
+## Funcionalidades Principais
+
+* **Busca Inteligente:** Pesquisa instantânea de jogos por nome.
+* **Filtros Dinâmicos:** Filtragem de catálogo completa por gêneros de jogos.
+* **Ordenação Personalizada:** Ordenação rápida por popularidade, nota do Metacritic, data de lançamento e nota dos usuários.
+* **Página de Detalhes:** Informações robustas incluindo capturas de tela (screenshots), nota oficial, resumo do jogo em português, plataformas e links oficiais das lojas para compra.
+* **Design Premium:** Interface escura moderna com elementos transparentes (glassmorphism), suporte nativo a temas e transições suaves.
+
+---
+
+## Como Rodar este Projeto Localmente
+
+### 1. Pré-requisitos
+* Ter o **Node.js** instalado na sua máquina.
+* Ter uma chave de API gratuita da RAWG ([cadastre-se e gere uma aqui](https://rawg.io/apidocs)).
+
+### 2. Configurando o Ambiente
+Crie um arquivo `.env` na raiz do projeto (este arquivo já está no `.gitignore` e não vai para o repositório por segurança):
 
 ```env
-# Obrigatório
-RAWG_API_KEY=SUA_CHAVE_RAWG_AQUI
+# Chave da API (Obrigatória para o catálogo)
+RAWG_API_KEY=sua_chave_secreta_da_rawg_aqui
 
-# Opcional — preencha apenas se quiser usar login, favoritos e avaliações
-MYSQLHOST=SEU_HOST_MYSQL
-MYSQLUSER=SEU_USUARIO_MYSQL
-MYSQLPASSWORD=SUA_SENHA_MYSQL
-MYSQLDATABASE=SEU_NOME_DO_BANCO
+# Configuração do MySQL (Opcional - Ativa o login, favoritos e avaliações)
+MYSQLHOST=seu_host_do_banco
+MYSQLUSER=seu_usuario_do_banco
+MYSQLPASSWORD=sua_senha_do_banco
+MYSQLDATABASE=nome_do_seu_banco
 MYSQLPORT=3306
 ```
 
-> **Atenção:** O arquivo `.env` já está listado no `.gitignore` e **não será enviado ao GitHub**. O servidor cria as tabelas `usuarios` e `avaliacoes` automaticamente na primeira execução com banco configurado.
-
-### 3. Instalando dependências e Rodando o Servidor
-
+### 3. Executando o Servidor
+Abra o terminal na pasta do projeto e execute:
 ```bash
+# Instala as dependências leves necessárias
 npm install
+
+# Inicia o servidor local
 node server.js
 ```
+O servidor estará rodando em: `http://localhost:3333`
 
-### 4. Abrindo a Interface Web
-Abra o arquivo `pages/index.html` diretamente no navegador, ou use a extensão **Live Server** no VS Code. O frontend redireciona as chamadas para `http://localhost:3333` automaticamente em ambiente local.
-
----
-
-## ☁️ Deploy (Hospedagem)
-
-### Opção 1: Vercel (Recomendado para uso sem banco)
-
-O projeto já possui um `vercel.json` configurado para funcionar como serverless no Vercel. **Apenas o catálogo e a busca funcionam nessa configuração** (login, favoritos e avaliações precisam de banco).
-
-1. Faça push do repositório para o GitHub.
-2. Acesse [vercel.com](https://vercel.com/) e importe o repositório.
-3. Em **Settings > Environment Variables**, adicione:
-   - `RAWG_API_KEY` → sua chave da RAWG API
-4. Clique em **Deploy**. ✅
-
-> Para habilitar login, favoritos e avaliações no Vercel, adicione também as variáveis `MYSQLHOST`, `MYSQLUSER`, `MYSQLPASSWORD`, `MYSQLDATABASE` e `MYSQLPORT` apontando para um banco MySQL externo (ex: [Railway](https://railway.app/), [PlanetScale](https://planetscale.com/)).
+### 4. Visualizando o Frontend
+Abra o arquivo `pages/index.html` diretamente no seu navegador ou utilizando a extensão **Live Server** no seu editor de código.
 
 ---
 
-### Opção 2: Railway (Backend + Banco integrados)
+## Deploy no Vercel (Passo a Passo)
 
-O Railway permite rodar o Node.js e o MySQL juntos no mesmo projeto, com variáveis automáticas.
-
-1. Crie uma conta em [railway.app](https://railway.app/).
-2. Inicie um novo projeto e adicione o plugin **MySQL** — as credenciais aparecerão em `Variables` automaticamente.
-3. Conecte sua conta do GitHub e importe este repositório.
-4. Em **Variables**, adicione `RAWG_API_KEY` com sua chave.
-5. Crie um domínio em `Settings > Domains` e acesse o site. O Railway instala as dependências e inicia o servidor automaticamente.
+1. Suba o projeto para o seu repositório no **GitHub**.
+2. Acesse seu painel da [Vercel](https://vercel.com/) e importe o repositório.
+3. Antes de clicar em Deploy, vá na seção **Environment Variables** e adicione a variável secreta:
+   * **Key:** `RAWG_API_KEY`
+   * **Value:** *(A sua chave da RAWG API)*
+4. *(Opcional)* Se no futuro desejar ativar o login e avaliações na Vercel, adicione também as chaves `MYSQLHOST`, `MYSQLUSER`, `MYSQLPASSWORD`, `MYSQLDATABASE` e `MYSQLPORT` apontando para um MySQL externo (como o do **Railway**).
+5. Clique em **Deploy**. A Vercel lerá o arquivo `vercel.json` na raiz e configurará as rotas estáticas e serverless automaticamente! ✅
