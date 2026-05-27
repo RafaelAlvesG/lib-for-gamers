@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIB FOR GAMERS | Catalogo de Jogos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Teko:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../styles/style.css">
+    <script src="../scripts/app.js" defer></script>
+</head>
+
+<body>
+    <div class="forma-fundo forma-fundo-a" aria-hidden="true"></div>
+    <div class="forma-fundo forma-fundo-b" aria-hidden="true"></div>
+
+    <header>
+        <nav class="nav-topo">
+            <div class="marca-envolto">
+                <a href="index.html">
+                    <span class="marca-slogan">LIB FOR GAMERS</span>
+                    <h1>LIB FOR GAMERS</h1>
+                </a>
+            </div>
+
+            <div class="controles">
+                <input id="entradaBusca" type="search" placeholder="Buscar jogo por nome..." autocomplete="off">
+                <select id="filtroGenero">
+                    <option value="">Todos os generos</option>
+                </select>
+                <select id="filtroOrdenacao">
+                    <option value="">Relevância (padrão)</option>
+                    <option value="-metacritic">Metacritic ↑</option>
+                    <option value="metacritic">Metacritic ↓</option>
+                    <option value="-released">Lançamento ↑</option>
+                    <option value="released">Lançamento ↓</option>
+                    <option value="-name">Nome Z–A</option>
+                    <option value="site_rating">Nota do site ↑</option>
+                    <option value="-site_rating">Nota do site ↓</option>
+                </select>
+
+                <button id="btnTema" class="btn btn-secundario" type="button">Modo claro</button>
+                <button id="btnSair" class="btn btn-perigo" type="button">Sair</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="secaoApp" class="oculto">
+            <div class="aba-secaos">
+                <button class="aba-secao ativo" data-target="secaoJogos" type="button">Catalogo</button>
+                <button class="aba-secao" data-target="secaoFavoritos" type="button">Favoritos</button>
+            </div>
+
+            <section id="secaoJogos" class="secao-conteudo">
+                <div class="titulo-secao-envolto">
+                    <h2>Jogos em destaque</h2>
+                    <span id="crachaUsuario" class="cracha"></span>
+                </div>
+                <p id="infoCatalogo" class="texto-suave"></p>
+                <div id="gradeJogos" class="grade-jogos"></div>
+                <div class="acoes-catalogo">
+                    <button id="btnCarregarMais" class="btn btn-secundario" type="button">Carregar mais jogos</button>
+                </div>
+            </section>
+
+            <section id="secaoFavoritos" class="secao-conteudo oculto">
+                <h2>Seus favoritos</h2>
+                <div id="gradeFavoritos" class="grade-jogos"></div>
+            </section>
+
+
+        </section>
+    </main>
+
+    <footer>
+        <p>LIB FOR GAMERS - Projeto em HTML, CSS e JavaScript puro com a API RAWG.</p>
+    </footer>
+</body>
+
+</html>

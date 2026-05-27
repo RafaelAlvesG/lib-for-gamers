@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIB FOR GAMERS | Detalhes do jogo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Teko:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../styles/style.css">
+    <script src="../scripts/game.js" defer></script>
+</head>
+
+<body>
+    <div class="forma-fundo forma-fundo-a" aria-hidden="true"></div>
+    <div class="forma-fundo forma-fundo-b" aria-hidden="true"></div>
+
+    <header>
+        <nav class="nav-topo">
+            <div class="marca-envolto">
+                <a href="index.html">
+                    <span class="marca-slogan">LIB FOR GAMERS</span>
+                    <h1>LIB FOR GAMERS</h1>
+                </a>
+            </div>
+            <div class="controles">
+                <a class="btn btn-primario" href="index.html">Voltar ao catálogo</a>
+                <button id="btnTema" class="btn btn-secundario" type="button">Modo claro</button>
+                <button id="btnSair" class="btn btn-perigo" type="button">Sair</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="detalheJogo" class="detalhe-jogo oculto">
+            <div class="hero-jogo">
+                <img id="imagemHero" class="imagem-hero" src="" alt="Imagem do jogo">
+                <div class="sobreposicao-hero"></div>
+                <div class="conteudo-hero">
+                    <div>
+                        <h2 id="nomeJogo"></h2>
+                        <p id="subtituloJogo" class="texto-suave"></p>
+                    </div>
+                    <div id="emblemaScore" class="pontuacao-meta">0</div>
+                </div>
+            </div>
+
+            <div class="grade-detalhe">
+
+                <!-- Card de pontuacoes combinadas -->
+                <article class="cartao-detalhe cartao-pontuacoes">
+                    <h3>Pontuacoes</h3>
+                    <div class="painel-pontuacoes">
+                        <div class="item-pontuacao">
+                            <span class="rotulo-pontuacao">Metacritic</span>
+                            <div class="valor-pontuacao">
+                                <span id="metacriticDetalhe" class="pontuacao-meta">N/A</span>
+                                <span class="texto-suave escala-pontuacao">/ 100</span>
+                            </div>
+                        </div>
+                        <div class="divisor-pontuacao" aria-hidden="true"></div>
+                        <div class="item-pontuacao">
+                            <span class="rotulo-pontuacao">Usuarios do site</span>
+                            <div class="valor-pontuacao">
+                                <div id="estrelasPontuacao" class="estrelas-display" aria-label="Media dos usuarios">
+                                </div>
+                                <span id="textoMedia" class="texto-suave">Sem avaliacoes</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="cartao-detalhe">
+                    <h3>Resumo simplificado (PT-BR)</h3>
+                    <p id="descricaoJogo" class="texto-suave"></p>
+                </article>
+
+                <article class="cartao-detalhe">
+                    <h3>Informacoes</h3>
+                    <ul id="fatosJogo" class="lista-fatos"></ul>
+                </article>
+
+                <article class="cartao-detalhe">
+                    <h3>Plataformas</h3>
+                    <div id="plataformasJogo" class="lista-tags"></div>
+                </article>
+
+                <article class="cartao-detalhe">
+                    <h3>Generos e tags</h3>
+                    <div id="generosJogo" class="lista-tags"></div>
+                    <div id="tagsJogo" class="lista-tags" style="margin-top: 8px;"></div>
+                </article>
+
+                <article class="cartao-detalhe cartao-comercio">
+                    <h3>Links oficiais</h3>
+                    <div class="grade-comercio">
+                        <section class="bloco-comercio">
+                            <p class="texto-suave">Links oficiais de lojas detectadas para este jogo.</p>
+                            <div id="linksLoja" class="lista-links"></div>
+                        </section>
+                    </div>
+                </article>
+            </div>
+
+            <section class="envolto-capturas">
+                <h3>Capturas de tela</h3>
+                <div id="gradeCaptura" class="grade-capturas"></div>
+            </section>
+
+            <!-- Secao de Avaliacoes -->
+            <section class="envolto-avaliacoes">
+                <h3>Avaliacoes dos usuarios</h3>
+
+                <div id="listaAvaliacoes" class="lista-avaliacoes">
+                    <p class="texto-suave">Carregando avaliacoes...</p>
+                </div>
+
+                <div id="painelFormAvaliacao" class="painel-form-avaliacao oculto">
+                    <h4>Deixe sua avaliacao</h4>
+                    <form id="formularioAvaliacao" class="form-avaliacao" novalidate>
+                        <div class="campo-avaliacao">
+                            <label>Sua nota</label>
+                            <div id="seletorEstrelas" class="seletor-estrelas" role="group"
+                                aria-label="Selecione sua nota de 0.5 a 5 estrelas"></div>
+                            <input id="notaAvaliacao" type="hidden" value="0">
+                            <span id="textoNota" class="texto-nota texto-suave">Nenhuma nota selecionada</span>
+                        </div>
+                        <div class="campo-avaliacao">
+                            <label for="comentarioAvaliacao">Comentario</label>
+                            <textarea id="comentarioAvaliacao" rows="3" required
+                                placeholder="O que voce achou do jogo?"></textarea>
+                        </div>
+                        <button class="btn btn-primario" type="submit">Enviar avaliacao</button>
+                    </form>
+                    <p id="retornoAvaliacao" class="retorno" aria-live="polite"></p>
+                </div>
+
+                <p id="avisoLoginAvaliacao" class="texto-suave oculto">
+                    <a href="login.html" style="color: var(--brand);">Faca login</a> para deixar sua avaliacao.
+                </p>
+            </section>
+        </section>
+
+        <section id="erroDetalhe" class="caixa-vazia oculto"></section>
+        <section id="carregandoDetalhe" class="caixa-vazia">Carregando detalhes do jogo...</section>
+    </main>
+
+    <footer>
+        <p>LIB FOR GAMERS - Detalhes, lojas e avaliacoes de usuarios.</p>
+    </footer>
+</body>
+
+</html>

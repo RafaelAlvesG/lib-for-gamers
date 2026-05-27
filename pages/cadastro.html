@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIB FOR GAMERS | Cadastro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Teko:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../styles/style.css">
+    <script src="../scripts/app.js" defer></script>
+</head>
+
+<body>
+    <div class="forma-fundo forma-fundo-a" aria-hidden="true"></div>
+    <div class="forma-fundo forma-fundo-b" aria-hidden="true"></div>
+
+    <header>
+        <nav class="nav-topo">
+            <div class="marca-envolto">
+                <a href="index.html" style="text-decoration: none;">
+                    <span class="marca-slogan">LIB FOR GAMERS</span>
+                    <h1>LIB FOR GAMERS</h1>
+                </a>
+            </div>
+            <div class="controles">
+                <button id="btnTema" class="btn btn-secundario" type="button">Modo claro</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="secaoAutenticacao" class="painel-auth">
+            <div class="cartao-auth">
+                <div class="alternador-auth" role="tablist" aria-label="Login e cadastro">
+                    <button id="btnMostraLogin" class="btn-aba" type="button"
+                        onclick="window.location.href='login.html'">Login</button>
+                    <button id="btnMostraCadastro" class="btn-aba ativo" type="button"
+                        onclick="window.location.href='cadastro.html'">Cadastro</button>
+                </div>
+
+                <form id="formularioCadastro" class="form-auth" novalidate>
+                    <h2>Criar conta</h2>
+                    <p>Cadastre seu email e senha para comecar.</p>
+                    <label for="usuarioCadastro">Usuario</label>
+                    <input id="usuarioCadastro" type="text" required placeholder="Nome de usuario">
+                    <label for="emailCadastro">Email</label>
+                    <input id="emailCadastro" type="email" required placeholder="seuemail@exemplo.com">
+                    <label for="senhaCadastro">Senha</label>
+                    <input id="senhaCadastro" type="password" required minlength="6"
+                        placeholder="Minimo de 6 caracteres">
+
+                    <button class="btn btn-primario" type="submit">Cadastrar</button>
+                </form>
+
+                <p id="authMessage" class="retorno" aria-live="polite"></p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>LIB FOR GAMERS - Projeto em HTML, CSS e JavaScript puro com a API RAWG.</p>
+    </footer>
+</body>
+
+</html>
